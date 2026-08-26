@@ -11,7 +11,7 @@ export const metadata = {
   title: "A&B Tournaments",
   description: "Discover, register, and compete in the ultimate esports, sports, and hackathon events.",
   openGraph: {
-    title: "A&B Tournaments | Where Legends Compete",
+    title: "A&B Tournaments | Let's Compete",
     description: "Discover, register, and compete in the ultimate esports, sports, and hackathon events.",
     url: APP_URL,
     siteName: "A&B Tournaments",
@@ -27,7 +27,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "A&B Tournaments | Where Legends Compete",
+    title: "A&B Tournaments | Let's Compete",
     description: "Discover, register, and compete in the ultimate esports, sports, and hackathon events.",
     images: [`${APP_URL}/images/ab_tournaments_og.jpg`],
   },
