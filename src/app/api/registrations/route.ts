@@ -1,50 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { authService } from "@/services/auth.service";
-import nodemailer from "nodemailer";
+import { sendOTPEmail } from "@/lib/email";
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-async function sendOTPEmail(email: string, otp: string, teamName: string) {
-  // If SMPT environment variables are missing, simulate sending for development
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log(`[DEV MODE] Skipping email send. OTP for ${email} is: ${otp}`);
-    return true;
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.SMTP_FROM || '"A&B Tournaments" <noreply@abtournaments.com>',
-    to: email,
-    subject: "Verify Your Registration - A&B Tournaments",
-    text: `Hello ${teamName},\n\nYour verification code is: ${otp}\n\nThis code will expire in 15 minutes.`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-w-md mx-auto p-8 border border-gray-200 rounded-md">
-        <h2 style="color: #0A192F;">Verify Your Registration</h2>
-        <p>Hello <strong>${teamName}</strong>,</p>
-        <p>Thank you for registering for the upcoming tournament. Please use the following 6-digit code to verify your registration:</p>
-        <div style="background-color: #f4f4f5; padding: 16px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 24px 0;">
-          ${otp}
-        </div>
-        <p style="color: #666; font-size: 14px;">This code will expire in 15 minutes.</p>
-        <p>If you did not request this, please ignore this email.</p>
-      </div>
-    `,
-  };
-
-  await transporter.sendMail(mailOptions);
-  return true;
 }
 
 export async function POST(request: NextRequest) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Trophy, Users, LogOut, Menu, X, Settings } from "lucide-react";
+import { LayoutDashboard, Trophy, Users, LogOut, Menu, X, Settings, Banknote } from "lucide-react";
 import { useState } from "react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Dashboard", href: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
     { name: "Competitions", href: "/admin/competitions", icon: <Trophy size={20} /> },
     { name: "Registrations", href: "/admin/registrations", icon: <Users size={20} /> },
+    { name: "Payments", href: "/admin/payments", icon: <Banknote size={20} /> },
     { name: "Customisations", href: "/admin/customisations", icon: <Settings size={20} /> },
   ];
 

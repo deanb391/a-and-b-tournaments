@@ -18,6 +18,7 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState("REGISTRATION OPEN");
   const [whatsappLink, setWhatsappLink] = useState("");
+  const [entryFee, setEntryFee] = useState("0");
   
   const [existingImage, setExistingImage] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -37,6 +38,7 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
         setLocation(comp.location);
         setStatus(comp.status);
         setWhatsappLink(comp.whatsapp_link || "");
+        setEntryFee(comp.entry_fee?.toString() || "0");
         setExistingImage(comp.image);
       } catch (err: any) {
         setError(err.message || "Failed to load competition");
@@ -94,7 +96,8 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
         location,
         status,
         whatsapp_link: whatsappLink || null,
-        image: imageUrl
+        image: imageUrl,
+        entry_fee: parseFloat(entryFee) || 0
       });
 
       // Success
@@ -217,6 +220,20 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
                 value={whatsappLink}
                 onChange={(e) => setWhatsappLink(e.target.value)}
                 placeholder="https://chat.whatsapp.com/..."
+                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-pixel text-navy">Entry Fee (NGN) <span className="text-navy/50 text-xs ml-2">- Enter 0 for Free</span></label>
+              <input 
+                type="number"
+                min="0"
+                step="1"
+                required
+                value={entryFee}
+                onChange={(e) => setEntryFee(e.target.value)}
+                placeholder="0"
                 className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
               />
             </div>

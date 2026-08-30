@@ -27,6 +27,12 @@ export async function GET(
         competitions (
           title,
           category
+        ),
+        payments (
+          reference,
+          amount,
+          status,
+          created_at
         )
       `)
       .eq("id", id)

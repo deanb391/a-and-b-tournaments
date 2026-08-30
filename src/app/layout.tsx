@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   }
 };
 
+import ProgressBarProvider from "@/components/ProgressBarProvider";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -28,7 +30,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${inter.variable} ${pressStart2P.variable} antialiased`}
     >
       <body className="min-h-screen font-sans flex flex-col text-navy">
-        {children}
+        <ProgressBarProvider>
+          {children}
+        </ProgressBarProvider>
       </body>
     </html>
   );

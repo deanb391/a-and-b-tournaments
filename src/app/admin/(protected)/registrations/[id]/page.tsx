@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { ArrowLeft, CheckCircle2, XCircle, Mail, Phone, MapPin, Users, Calendar } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Mail, Phone, MapPin, Users, Calendar, Ticket, Banknote } from "lucide-react";
 import Link from "next/link";
 import { apiClient } from "@/lib/api/client";
 
@@ -130,6 +130,71 @@ export default function AdminRegistrationDetailsPage({ params }: { params: Promi
               <div>
                 <p className="text-xs font-bold text-navy/50 uppercase tracking-widest mb-1">Registration Date</p>
                 <p className="font-bold text-navy text-lg">{new Date(registration.created_at).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment & Ticketing Section */}
+        <div className="p-8 border-t-4 border-navy/10 bg-offwhite">
+          <h3 className="font-black text-xl uppercase tracking-wider text-navy border-b-2 border-navy/10 pb-2 mb-6">Enrollment & Payment</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <Ticket className="text-red shrink-0" size={24} />
+                <div>
+                  <p className="text-xs font-bold text-navy/50 uppercase tracking-widest mb-1">Ticket Number</p>
+                  {registration.ticket_number ? (
+                    <div className="inline-block bg-white border-2 border-navy px-3 py-1 font-mono font-bold text-red">
+                      {registration.ticket_number}
+                    </div>
+                  ) : (
+                    <p className="font-bold text-navy/40">Not Issued</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <CheckCircle2 className="text-navy shrink-0" size={24} />
+                <div>
+                  <p className="text-xs font-bold text-navy/50 uppercase tracking-widest mb-1">Enrollment Status</p>
+                  <p className="font-bold text-navy text-lg">
+                    {registration.enrolled ? "Officially Enrolled" : "Pending Enrollment"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <Banknote className="text-navy shrink-0" size={24} />
+                <div>
+                  <p className="text-xs font-bold text-navy/50 uppercase tracking-widest mb-1">Payment Records</p>
+                  {registration.payments && registration.payments.length > 0 ? (
+                    <div className="space-y-4 mt-2">
+                      {registration.payments.map((payment: any) => (
+                        <div key={payment.reference} className="bg-white border-2 border-navy p-3 text-sm">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-mono font-bold text-navy">{payment.reference}</span>
+                            <span className={`font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded ${
+                              payment.status === 'success' ? 'bg-[#25D366]/20 text-[#25D366]' : 
+                              payment.status === 'failed' ? 'bg-red/20 text-red' : 'bg-yellow-500/20 text-yellow-600'
+                            }`}>
+                              {payment.status}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-red">₦{payment.amount.toLocaleString()}</span>
+                            <span className="text-navy/50 text-xs">{new Date(payment.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="font-bold text-navy/40">No payments found (Free Tournament)</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

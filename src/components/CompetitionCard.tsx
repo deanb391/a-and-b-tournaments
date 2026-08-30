@@ -11,6 +11,7 @@ export interface Competition {
   status: string;
   image: string;
   whatsapp_link?: string;
+  entry_fee?: number;
 }
 
 interface CompetitionCardProps {
@@ -18,6 +19,8 @@ interface CompetitionCardProps {
 }
 
 export default function CompetitionCard({ competition }: CompetitionCardProps) {
+  const isFree = !competition.entry_fee || competition.entry_fee === 0;
+
   return (
     <div className="group border-4 border-navy bg-white hover:-translate-y-2 transition-transform duration-300 relative h-full flex flex-col">
       <div className="absolute inset-0 bg-red translate-x-3 translate-y-3 -z-10 transition-transform group-hover:translate-x-4 group-hover:translate-y-4"></div>
@@ -29,9 +32,14 @@ export default function CompetitionCard({ competition }: CompetitionCardProps) {
       
       <div className="p-6 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-4 gap-2 flex-wrap">
-          <span className="inline-block bg-navy text-offwhite text-xs font-bold px-2 py-1 uppercase tracking-wider">
-            {competition.category}
-          </span>
+          <div className="flex gap-2">
+            <span className="inline-block bg-navy text-offwhite text-xs font-bold px-2 py-1 uppercase tracking-wider">
+              {competition.category}
+            </span>
+            <span className={`inline-block text-xs font-bold px-2 py-1 uppercase tracking-wider ${isFree ? 'bg-red text-white' : 'bg-navy/10 text-navy'}`}>
+              {isFree ? 'FREE' : `₦${competition.entry_fee?.toLocaleString()}`}
+            </span>
+          </div>
           <span className={`text-xs font-bold px-2 py-1 uppercase tracking-wider border-2 ${competition.status === 'REGISTRATION OPEN' ? 'border-red text-red' : 'border-navy/30 text-navy/50'}`}>
             {competition.status}
           </span>

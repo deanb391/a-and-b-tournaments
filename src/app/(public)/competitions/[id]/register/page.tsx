@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useRef } from "react";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { apiClient } from "@/lib/api/client";
@@ -48,19 +48,31 @@ export default function RegisterPage({ params }: { params: Promise<{ id: string 
     }
   };
 
+  const isVerifying = useRef(false);
+
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isVerifying.current) return;
+    
+    isVerifying.current = true;
     setIsSubmitting(true);
     setError("");
 
     try {
       const response = await apiClient.registrations.verify(registrationId, otpCode);
+      if (response.paymentRequired && response.authorizationUrl) {
+        // Redirect to Paystack Checkout
+        window.location.href = response.authorizationUrl;
+        return; // Don't set step to success yet
+      }
+
       if (response.whatsapp_link) {
         setWhatsappLink(response.whatsapp_link);
       }
       setStep("success");
     } catch (err: any) {
       setError(err.message || "Invalid or expired verification code");
+      isVerifying.current = false;
     } finally {
       setIsSubmitting(false);
     }

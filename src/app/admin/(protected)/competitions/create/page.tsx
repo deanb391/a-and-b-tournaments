@@ -15,6 +15,7 @@ export default function CreateCompetition() {
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState("REGISTRATION OPEN");
   const [whatsappLink, setWhatsappLink] = useState("");
+  const [entryFee, setEntryFee] = useState("0");
   const [file, setFile] = useState<File | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,7 +74,8 @@ export default function CreateCompetition() {
           location,
           status,
           whatsapp_link: whatsappLink || null,
-          image: imageUrl
+          image: imageUrl,
+          entry_fee: parseFloat(entryFee) || 0
         }),
       });
 
@@ -202,6 +204,20 @@ export default function CreateCompetition() {
                 value={whatsappLink}
                 onChange={(e) => setWhatsappLink(e.target.value)}
                 placeholder="https://chat.whatsapp.com/..."
+                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-pixel text-navy">Entry Fee (NGN) <span className="text-navy/50 text-xs ml-2">- Enter 0 for Free</span></label>
+              <input 
+                type="number"
+                min="0"
+                step="1"
+                required
+                value={entryFee}
+                onChange={(e) => setEntryFee(e.target.value)}
+                placeholder="0"
                 className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
               />
             </div>

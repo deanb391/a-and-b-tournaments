@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Calendar, MapPin, Users } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Ticket } from "lucide-react";
 import Link from "next/link";
 import { apiClient } from "@/lib/api/client";
 import { Competition } from "@/components/CompetitionCard";
@@ -121,6 +121,22 @@ export default function CompetitionDetailsClient({ id }: { id: string }) {
                 <div>
                   <p className="text-sm font-bold text-navy/50 uppercase tracking-widest mb-1">Location</p>
                   <p className="font-black text-navy text-xl">{competition.location}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 bg-offwhite p-6 border-2 border-navy/10 md:col-span-2">
+                <div className="bg-navy p-3 text-offwhite shrink-0">
+                  <Ticket size={28} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-navy/50 uppercase tracking-widest mb-1">Entry Fee</p>
+                  <p className="font-black text-navy text-xl">
+                    {!competition.entry_fee || competition.entry_fee === 0 ? (
+                      <span className="text-red">FREE</span>
+                    ) : (
+                      `₦${competition.entry_fee.toLocaleString()}`
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
