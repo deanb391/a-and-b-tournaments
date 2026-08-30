@@ -30,9 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${inter.variable} ${pressStart2P.variable} antialiased`}
     >
       <body className="min-h-screen font-sans flex flex-col text-navy">
-        <ProgressBarProvider>
-          {children}
-        </ProgressBarProvider>
+        <ProgressBarProvider />
+        {children}
       </body>
     </html>
   );
