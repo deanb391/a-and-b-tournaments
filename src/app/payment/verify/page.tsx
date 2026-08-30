@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default function PaymentVerifyPage() {
+function VerifyContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const reference = searchParams.get("reference") || searchParams.get("trxref");
@@ -102,5 +102,13 @@ export default function PaymentVerifyPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PaymentVerifyPage() {
+  return (
+    <Suspense fallback={<div className="bg-offwhite min-h-screen py-32 flex flex-col items-center justify-center p-4 font-bold text-navy text-xl">Loading...</div>}>
+      <VerifyContent />
+    </Suspense>
   );
 }
