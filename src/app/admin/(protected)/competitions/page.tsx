@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Edit2, Trash2, RefreshCw, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, RefreshCw, Search, AlertTriangle, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Competition } from "@/components/CompetitionCard";
-
 import { useRouter } from "next/navigation";
 
 export default function CompetitionsPage() {
@@ -15,6 +15,7 @@ export default function CompetitionsPage() {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const LIMIT = 10;
 
   const fetchCompetitions = async (offset = 0, query = "") => {
@@ -23,14 +24,9 @@ export default function CompetitionsPage() {
       if (offset === 0) {
         setCompetitions(data);
       } else {
-        setCompetitions(prev => [...prev, ...data]);
+        setCompetitions((prev) => [...prev, ...data]);
       }
-
-      if (data.length < LIMIT) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
-      }
+      setHasMore(data.length === LIMIT);
     } catch (error) {
       console.error("Failed to fetch competitions:", error);
     } finally {
@@ -40,7 +36,6 @@ export default function CompetitionsPage() {
   };
 
   useEffect(() => {
-    // Debounce search
     const timer = setTimeout(() => {
       setIsLoading(true);
       fetchCompetitions(0, searchQuery);
@@ -54,113 +49,165 @@ export default function CompetitionsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this competition?")) return;
-
     try {
       await apiClient.competitions.delete(id);
-      setCompetitions(prev => prev.filter(c => c.id !== id));
+      setCompetitions((prev) => prev.filter((c) => c.id !== id));
     } catch (error) {
       console.error("Failed to delete competition:", error);
-      alert("Failed to delete competition");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 animate-fade-up" style={{ marginBottom: 70 }}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" >
         <div>
-          <h1 className="text-3xl font-black uppercase text-navy">Competitions</h1>
-          <p className="text-navy/60 font-bold">Manage tournament listings.</p>
+          <h1 className="text-3xl font-black uppercase text-navy tracking-tight">Competitions</h1>
+          <p className="text-navy/45 font-medium text-sm mt-1">Manage tournament listings.</p>
         </div>
         <Link
           href="/admin/competitions/create"
-          className="bg-red text-offwhite font-black uppercase tracking-widest px-6 py-3 flex items-center gap-2 hover:-translate-y-1 hover:shadow-[4px_4px_0px_#0A192F] transition-all border-2 border-red"
+          className="bg-red text-offwhite font-black uppercase tracking-wider px-5 py-2.5 flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(230,57,70,0.35)] transition-all rounded-sm text-sm shrink-0"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           Create New
         </Link>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex bg-white border-4 border-navy shadow-[4px_4px_0px_#0A192F] focus-within:shadow-[6px_6px_0px_#0A192F] transition-shadow">
-        <div className="px-4 py-3 flex items-center justify-center text-navy bg-navy/5 border-r-4 border-navy">
-          <Search size={24} />
+      {/* Search bar */}
+      <div className="flex bg-white border border-navy/12 rounded-sm shadow-sm overflow-hidden">
+        <div className="px-4 flex items-center justify-center text-navy/30 border-r border-navy/10">
+          <Search size={18} />
         </div>
-        <input 
+        <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search competitions by title..."
-          className="flex-1 px-4 py-3 bg-transparent text-navy font-bold focus:outline-none placeholder:text-navy/30"
+          className="flex-1 px-4 py-3 bg-transparent text-navy font-medium text-sm focus:outline-none placeholder:text-navy/25"
         />
       </div>
 
-      <div className="bg-white border-4 border-navy shadow-[6px_6px_0px_#0A192F]">
-        <div className="p-0 overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
+      {/* Table */}
+      <div className="bg-white border border-navy/10 rounded-sm shadow-[0_4px_16px_rgba(10,25,47,0.07)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[560px]">
             <thead>
-              <tr className="border-b-4 border-navy bg-navy/5">
-                <th className="p-4 font-bold text-navy uppercase tracking-wider text-sm">Image</th>
-                <th className="p-4 font-bold text-navy uppercase tracking-wider text-sm">Title</th>
-                <th className="p-4 font-bold text-navy uppercase tracking-wider text-sm">Category</th>
-                <th className="p-4 font-bold text-navy uppercase tracking-wider text-sm">Status</th>
-                <th className="p-4 font-bold text-navy uppercase tracking-wider text-sm text-right">Actions</th>
+              <tr className="border-b border-navy/8 bg-navy/[0.02]">
+                <th className="px-5 py-3 text-[10px] font-bold text-navy/40 uppercase tracking-[0.15em]">Image</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-navy/40 uppercase tracking-[0.15em]">Title</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-navy/40 uppercase tracking-[0.15em] hidden sm:table-cell">Category</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-navy/40 uppercase tracking-[0.15em]">Status</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-navy/40 uppercase tracking-[0.15em] text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && competitions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-navy font-bold">
+                  <td colSpan={5} className="px-5 py-10 text-center text-navy/35 font-bold text-sm">
                     Loading competitions...
                   </td>
                 </tr>
               ) : competitions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-navy/50 font-bold">
+                  <td colSpan={5} className="px-5 py-10 text-center text-navy/30 font-bold text-sm">
                     No competitions found. Create one!
                   </td>
                 </tr>
               ) : (
                 competitions.map((comp) => (
-                  <tr 
-                    key={comp.id} 
-                    onClick={() => router.push(`/admin/competitions/${comp.id}`)}
-                    className="border-b-2 border-navy/10 hover:bg-navy/5 transition-colors cursor-pointer"
-                  >
-                    <td className="p-4 w-24">
-                      <div className="w-16 h-12 bg-navy/10 overflow-hidden relative border-2 border-navy">
-                        <img src={comp.image} alt={comp.title} className="absolute inset-0 w-full h-full object-cover" />
-                      </div>
-                    </td>
-                    <td className="p-4 font-black text-navy">{comp.title}</td>
-                    <td className="p-4 font-bold text-navy/70 text-sm">{comp.category}</td>
-                    <td className="p-4">
-                      <span className={`px-3 py-1 font-bold text-[10px] uppercase tracking-wider ${comp.status === 'REGISTRATION OPEN' ? 'bg-[#25D366]/20 text-[#128C7E]'
-                        : comp.status === 'COMPLETED' ? 'bg-navy/10 text-navy/50'
-                          : 'bg-red/10 text-red'
-                        }`}>
-                        {comp.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right space-x-2">
-                      <Link
-                        href={`/admin/competitions/${comp.id}/edit`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 text-navy hover:text-red transition-colors bg-offwhite border-2 border-navy/20 inline-block"
-                      >
-                        <Edit2 size={16} />
-                      </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(comp.id);
-                        }}
-                        className="p-2 text-navy hover:text-red transition-colors bg-offwhite border-2 border-navy/20 inline-block"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
+                  <>
+                    <tr
+                      key={comp.id}
+                      className={`border-b border-navy/[0.05] transition-colors group ${deletingId === comp.id
+                        ? "bg-red/5"
+                        : "hover:bg-navy/[0.02]"
+                        }`}
+                    >
+                      <td className="p-0 w-20">
+                        <Link href={`/admin/competitions/${comp.id}`} className="block px-5 py-3 w-full h-full">
+                          <div className="w-14 h-10 bg-navy/8 overflow-hidden relative rounded-sm border border-navy/10">
+                            {comp.image && (
+                              <Image src={comp.image} alt={comp.title} fill className="object-cover" />
+                            )}
+                          </div>
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={`/admin/competitions/${comp.id}`} className="flex items-center px-5 py-3 font-bold text-navy text-sm w-full h-full">
+                          {comp.title}
+                        </Link>
+                      </td>
+                      <td className="p-0 hidden sm:table-cell">
+                        <Link href={`/admin/competitions/${comp.id}`} className="flex items-center px-5 py-3 font-medium text-navy/55 text-xs w-full h-full">
+                          {comp.category}
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={`/admin/competitions/${comp.id}`} className="flex items-center px-5 py-3 w-full h-full">
+                          <span className={`px-2.5 py-1 font-bold text-[10px] uppercase tracking-wider rounded-full ${comp.status === "REGISTRATION OPEN"
+                            ? "bg-green-50 text-green-600"
+                            : comp.status === "COMPLETED"
+                              ? "bg-navy/5 text-navy/40"
+                              : "bg-red/8 text-red"
+                            }`}>
+                            {comp.status}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/admin/competitions/${comp.id}/edit`}
+                            className="p-1.5 text-navy/40 hover:text-navy border border-navy/10 rounded-sm hover:border-navy/30 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 size={14} />
+                          </Link>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDeletingId(comp.id);
+                            }}
+                            className="p-1.5 text-navy/40 hover:text-red border border-navy/10 rounded-sm hover:border-red/30 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Inline delete confirmation row */}
+                    {deletingId === comp.id && (
+                      <tr key={`${comp.id}-confirm`} className="bg-red/5 border-b border-red/10">
+                        <td colSpan={5} className="px-5 py-4">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <AlertTriangle size={16} className="text-red shrink-0" />
+                            <p className="text-red font-bold text-sm flex-1">
+                              Delete <span className="underline">{comp.title}</span>? This cannot be undone.
+                            </p>
+                            <div className="flex gap-2 shrink-0">
+                              <button
+                                onClick={() => handleDelete(comp.id)}
+                                className="bg-red text-white font-black uppercase text-xs tracking-wider px-4 py-2 rounded-sm hover:bg-red/90 transition-colors"
+                              >
+                                Yes, Delete
+                              </button>
+                              <button
+                                onClick={() => setDeletingId(null)}
+                                className="bg-white border border-navy/15 text-navy/60 font-black uppercase text-xs tracking-wider px-4 py-2 rounded-sm hover:border-navy/30 transition-colors flex items-center gap-1"
+                              >
+                                <X size={12} /> Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))
               )}
             </tbody>
@@ -168,17 +215,13 @@ export default function CompetitionsPage() {
         </div>
 
         {hasMore && !isLoading && competitions.length > 0 && (
-          <div className="p-4 border-t-4 border-navy bg-navy/5 flex justify-center">
+          <div className="px-5 py-3 border-t border-navy/8 bg-navy/[0.01] flex justify-center">
             <button
               onClick={handleLoadMore}
               disabled={isFetchingMore}
-              className="flex items-center gap-2 font-bold uppercase tracking-wider text-navy hover:text-red transition-colors"
+              className="flex items-center gap-2 font-bold uppercase tracking-wider text-xs text-navy/50 hover:text-red transition-colors"
             >
-              {isFetchingMore ? (
-                <RefreshCw size={16} className="animate-spin" />
-              ) : (
-                <Plus size={16} />
-              )}
+              {isFetchingMore ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
               {isFetchingMore ? "Loading..." : "Load More"}
             </button>
           </div>

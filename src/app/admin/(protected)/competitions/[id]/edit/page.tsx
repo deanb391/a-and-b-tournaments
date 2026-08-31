@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, ArrowLeft } from "lucide-react";
+import { Upload, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { apiClient } from "@/lib/api/client";
 
@@ -10,7 +10,7 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
   const router = useRouter();
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
-  
+
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [category, setCategory] = useState("ESports");
@@ -19,10 +19,11 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
   const [status, setStatus] = useState("REGISTRATION OPEN");
   const [whatsappLink, setWhatsappLink] = useState("");
   const [entryFee, setEntryFee] = useState("0");
-  
+
   const [existingImage, setExistingImage] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -38,8 +39,8 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
         setLocation(comp.location);
         setStatus(comp.status);
         setWhatsappLink(comp.whatsapp_link || "");
-        setEntryFee(comp.entry_fee?.toString() || "0");
-        setExistingImage(comp.image);
+        setEntryFee(comp.entry_fee ? comp.entry_fee.toString() : "0");
+        setExistingImage(comp.image || "");
       } catch (err: any) {
         setError(err.message || "Failed to load competition");
       } finally {
@@ -51,7 +52,11 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selected = e.target.files[0];
+      setFile(selected);
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(selected);
     }
   };
 
@@ -63,7 +68,7 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
     try {
       let imageUrl = existingImage;
 
-      // Only upload a new image if one was selected
+      // Only upload new image if file is selected
       if (file) {
         const uploadFormData = new FormData();
         uploadFormData.append("file", file);
@@ -73,10 +78,12 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
         const uploadRes = await fetch(`/api/upload`, {
           method: "POST",
           body: uploadFormData,
+          credentials: "include",
         });
 
         if (!uploadRes.ok) {
-          throw new Error("Failed to upload image");
+          const errText = await uploadRes.text();
+          throw new Error(`Failed to upload image: ${uploadRes.status} ${errText}`);
         }
 
         const uploadData = await uploadRes.json();
@@ -87,7 +94,6 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
         }
       }
 
-      // Update competition in database
       await apiClient.competitions.update(id, {
         title,
         subtitle,
@@ -100,8 +106,7 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
         entry_fee: parseFloat(entryFee) || 0
       });
 
-      // Success
-      router.push("/admin/competitions");
+      router.push(`/admin/competitions/${id}`);
       router.refresh();
     } catch (err: any) {
       console.error(err);
@@ -111,76 +116,85 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
   };
 
   if (isLoading) {
-    return <div className="p-8 text-navy font-bold text-xl">Loading competition...</div>;
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 animate-pulse" style={{ marginBottom: 70 }}>
+        <div className="skeleton h-8 w-48 rounded-sm" />
+        <div className="skeleton h-96 w-full rounded-sm" />
+      </div>
+    );
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Link 
-          href="/admin/competitions"
-          className="p-2 border-2 border-navy hover:bg-navy hover:text-offwhite transition-colors"
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-up" style={{ marginBottom: 70 }}>
+      <div className="flex items-center gap-4">
+        <Link
+          href={`/admin/competitions/${id}`}
+          className="p-2 border border-navy/15 rounded-sm hover:bg-navy hover:text-offwhite transition-all text-navy/50"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight text-navy">Edit Competition</h1>
-          <p className="text-navy/60 font-medium">Update tournament details.</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-navy">Edit Competition</h1>
+          <p className="text-navy/40 font-medium text-sm mt-0.5">Update tournament details.</p>
         </div>
       </div>
 
-      <div className="bg-white border-4 border-navy shadow-[8px_8px_0px_#0A192F] p-8">
+      <div className="bg-white border border-navy/10 rounded-sm shadow-[0_4px_16px_rgba(10,25,47,0.07)] p-6 md:p-8">
         {error && (
-          <div className="bg-red/10 border-l-4 border-red text-red p-4 mb-8 font-bold">
+          <div className="bg-red/8 border-l-4 border-red text-red p-4 mb-6 font-bold text-sm rounded-sm">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Title</label>
-              <input 
-                type="text" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Title</label>
+              <input
+                type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Subtitle</label>
-              <input 
-                type="text"
-                required 
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+                placeholder="e.g. Summer Esports Championship"
+                className="input-field"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Category</label>
-              <select 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Subtitle</label>
+              <input
+                type="text"
+                required
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+                placeholder="e.g. The biggest Valorant tournament of the year"
+                className="input-field"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Category</label>
+              <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors appearance-none"
+                className="input-field appearance-none"
               >
                 <option value="ESports">ESports</option>
                 <option value="Football">Football</option>
                 <option value="Basketball">Basketball</option>
                 <option value="Chess">Chess</option>
                 <option value="Hackathon">Hackathon</option>
+                <option value="STEM">STEM</option>
+                <option value="Creative">Creative</option>
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Status</label>
-              <select 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Status</label>
+              <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors appearance-none"
+                className="input-field appearance-none"
               >
                 <option value="REGISTRATION OPEN">REGISTRATION OPEN</option>
                 <option value="UPCOMING">UPCOMING</option>
@@ -189,44 +203,47 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Date</label>
-              <input 
-                type="text" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Date</label>
+              <input
+                type="text"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+                placeholder="e.g. October 15-20, 2026"
+                className="input-field"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Location</label>
-              <input 
-                type="text" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Location</label>
+              <input
+                type="text"
                 required
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+                placeholder="e.g. Tech Hub Arena & Online"
+                className="input-field"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">WhatsApp Group Link</label>
-              <input 
-                type="url" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">WhatsApp Group Link</label>
+              <input
+                type="url"
                 value={whatsappLink}
                 onChange={(e) => setWhatsappLink(e.target.value)}
                 placeholder="https://chat.whatsapp.com/..."
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+                className="input-field"
               />
+              <p className="text-[10px] text-navy/35 font-medium">Must start with https://chat.whatsapp.com/</p>
             </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Entry Fee (NGN) <span className="text-navy/50 text-xs ml-2">- Enter 0 for Free</span></label>
-              <input 
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Entry Fee (NGN) — 0 for Free</label>
+              <input
                 type="number"
                 min="0"
                 step="1"
@@ -234,52 +251,50 @@ export default function EditCompetition({ params }: { params: Promise<{ id: stri
                 value={entryFee}
                 onChange={(e) => setEntryFee(e.target.value)}
                 placeholder="0"
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+                className="input-field"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-pixel text-navy">Competition Image</label>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Competition Image</label>
             
             {existingImage && !file && (
-              <div className="mb-4 flex items-start gap-4 p-4 border-2 border-navy/10 bg-navy/5">
-                <img src={existingImage} alt="Current" className="w-32 h-20 object-cover border-2 border-navy" />
+              <div className="mb-4 flex items-center gap-4 p-4 border border-navy/10 rounded-sm bg-navy/[0.02]">
+                <img src={existingImage} alt="Current" className="w-24 h-16 object-cover rounded-sm border border-navy/10" />
                 <div>
-                  <p className="text-sm font-bold text-navy">Current Image</p>
-                  <p className="text-xs text-navy/60 break-all">{existingImage}</p>
+                  <p className="text-xs font-bold text-navy/60 uppercase tracking-wider">Current Image</p>
+                  <p className="text-xs text-navy/40">Upload a new file below to replace it.</p>
                 </div>
               </div>
             )}
 
-            <div className="border-2 border-dashed border-navy/30 bg-offwhite p-8 flex flex-col items-center justify-center relative cursor-pointer hover:border-red transition-colors">
-              <input 
-                type="file" 
+            <div className="border border-dashed border-navy/20 bg-offwhite/50 rounded-sm p-8 flex flex-col items-center justify-center relative cursor-pointer hover:border-red transition-colors overflow-hidden">
+              <input
+                type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <Upload size={32} className="text-navy/50 mb-4" />
-              <p className="font-bold text-navy text-center mb-1">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="max-h-40 object-contain rounded-sm mb-3" />
+              ) : (
+                <Upload size={28} className="text-navy/30 mb-3" />
+              )}
+              <p className="font-bold text-navy/60 text-sm text-center">
                 {file ? file.name : "Click or drag to upload new image"}
               </p>
-              <p className="text-sm text-navy/50 text-center">
-                {file ? "New image ready to upload" : "Leave empty to keep current image"}
-              </p>
+              <p className="text-xs text-navy/35 text-center mt-1">JPG, PNG or WEBP — Max 5MB</p>
             </div>
           </div>
 
-          <div className="pt-6">
-            <button 
+          <div className="pt-4">
+            <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 font-black uppercase tracking-widest text-lg transition-all border-2 border-navy flex items-center justify-center ${
-                isSubmitting 
-                  ? 'bg-navy/80 text-white cursor-not-allowed' 
-                  : 'bg-navy text-offwhite hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0A192F]'
-              }`}
+              className="w-full py-4 font-black uppercase tracking-widest text-sm bg-navy text-offwhite rounded-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(10,25,47,0.25)] disabled:opacity-60 disabled:pointer-events-none"
             >
-              {isSubmitting ? 'UPDATING...' : 'SAVE CHANGES'}
+              {isSubmitting ? "Updating..." : "Save Changes"}
             </button>
           </div>
         </form>

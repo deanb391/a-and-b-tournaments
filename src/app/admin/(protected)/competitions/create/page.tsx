@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function CreateCompetition() {
   const router = useRouter();
-  
+
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [category, setCategory] = useState("ESports");
@@ -17,13 +17,18 @@ export default function CreateCompetition() {
   const [whatsappLink, setWhatsappLink] = useState("");
   const [entryFee, setEntryFee] = useState("0");
   const [file, setFile] = useState<File | null>(null);
-  
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selected = e.target.files[0];
+      setFile(selected);
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(selected);
     }
   };
 
@@ -95,21 +100,21 @@ export default function CreateCompetition() {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Link 
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-up" style={{ marginBottom: 70 }}>
+      <div className="flex items-center gap-4">
+        <Link
           href="/admin/competitions"
-          className="p-2 border-2 border-navy hover:bg-navy hover:text-offwhite transition-colors"
+          className="p-2 border border-navy/15 rounded-sm hover:bg-navy hover:text-offwhite transition-all text-navy/50"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight text-navy">Create Competition</h1>
-          <p className="text-navy/60 font-medium">Add a new tournament to the platform.</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-navy">Create Competition</h1>
+          <p className="text-navy/40 font-medium text-sm mt-0.5">Add a new tournament to the platform.</p>
         </div>
       </div>
 
-      <div className="bg-white border-4 border-navy shadow-[8px_8px_0px_#0A192F] p-8">
+      <div className="bg-white border border-navy/10 rounded-sm shadow-[0_4px_16px_rgba(10,25,47,0.07)] p-6 md:p-8">
         {error && (
           <div className="bg-red/10 border-l-4 border-red text-red p-4 mb-8 font-bold">
             {error}
@@ -118,10 +123,10 @@ export default function CreateCompetition() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Title</label>
-              <input 
-                type="text" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Title</label>
+              <input
+                type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -129,12 +134,12 @@ export default function CreateCompetition() {
                 className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
               />
             </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Subtitle</label>
-              <input 
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Subtitle</label>
+              <input
                 type="text"
-                required 
+                required
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
                 placeholder="e.g. The biggest Valorant tournament of the year"
@@ -142,9 +147,9 @@ export default function CreateCompetition() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Category</label>
-              <select 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Category</label>
+              <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors appearance-none"
@@ -157,9 +162,9 @@ export default function CreateCompetition() {
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Status</label>
-              <select 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Status</label>
+              <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
                 className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors appearance-none"
@@ -171,10 +176,10 @@ export default function CreateCompetition() {
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Date</label>
-              <input 
-                type="text" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Date</label>
+              <input
+                type="text"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -183,10 +188,10 @@ export default function CreateCompetition() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Location</label>
-              <input 
-                type="text" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Location</label>
+              <input
+                type="text"
                 required
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -197,20 +202,21 @@ export default function CreateCompetition() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">WhatsApp Group Link</label>
-              <input 
-                type="url" 
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">WhatsApp Group Link</label>
+              <input
+                type="url"
                 value={whatsappLink}
                 onChange={(e) => setWhatsappLink(e.target.value)}
                 placeholder="https://chat.whatsapp.com/..."
-                className="w-full bg-offwhite border-2 border-navy/20 px-4 py-3 font-medium text-navy focus:outline-none focus:border-red transition-colors"
+                className="input-field"
               />
+              <p className="text-[10px] text-navy/35 font-medium">Must start with https://chat.whatsapp.com/</p>
             </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-pixel text-navy">Entry Fee (NGN) <span className="text-navy/50 text-xs ml-2">- Enter 0 for Free</span></label>
-              <input 
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Entry Fee (NGN) — 0 for Free</label>
+              <input
                 type="number"
                 min="0"
                 step="1"
@@ -223,36 +229,34 @@ export default function CreateCompetition() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-pixel text-navy">Competition Image</label>
-            <div className="border-2 border-dashed border-navy/30 bg-offwhite p-8 flex flex-col items-center justify-center relative cursor-pointer hover:border-red transition-colors">
-              <input 
-                type="file" 
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-navy/55 uppercase tracking-wider">Competition Image</label>
+            <div className="border border-dashed border-navy/20 bg-offwhite/50 rounded-sm p-8 flex flex-col items-center justify-center relative cursor-pointer hover:border-red transition-colors overflow-hidden">
+              <input
+                type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <Upload size={32} className="text-navy/50 mb-4" />
-              <p className="font-bold text-navy text-center mb-1">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="max-h-40 object-contain rounded-sm mb-3" />
+              ) : (
+                <Upload size={28} className="text-navy/30 mb-3" />
+              )}
+              <p className="font-bold text-navy/60 text-sm text-center">
                 {file ? file.name : "Click or drag to upload"}
               </p>
-              <p className="text-sm text-navy/50 text-center">
-                JPG, PNG or WEBP (Max 5MB)
-              </p>
+              <p className="text-xs text-navy/35 text-center mt-1">JPG, PNG or WEBP — Max 5MB</p>
             </div>
           </div>
 
-          <div className="pt-6">
-            <button 
+          <div className="pt-4">
+            <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 font-black uppercase tracking-widest text-lg transition-all border-2 border-navy flex items-center justify-center ${
-                isSubmitting 
-                  ? 'bg-navy/80 text-white cursor-not-allowed' 
-                  : 'bg-navy text-offwhite hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0A192F]'
-              }`}
+              className="w-full py-4 font-black uppercase tracking-widest text-sm bg-navy text-offwhite rounded-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(10,25,47,0.25)] disabled:opacity-60 disabled:pointer-events-none"
             >
-              {isSubmitting ? 'CREATING...' : 'CREATE COMPETITION'}
+              {isSubmitting ? "Creating..." : "Create Competition"}
             </button>
           </div>
         </form>

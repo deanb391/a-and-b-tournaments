@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import CompetitionCard, { Competition } from "./CompetitionCard";
+import SkeletonCard from "./SkeletonCard";
 import { apiClient } from "@/lib/api/client";
+import { ArrowRight } from "lucide-react";
 
 export default function FeaturedCompetitions() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -12,7 +14,7 @@ export default function FeaturedCompetitions() {
   useEffect(() => {
     const fetchCompetitions = async () => {
       try {
-        const data = await apiClient.competitions.get(3, 0); // Fetch top 3 latest
+        const data = await apiClient.competitions.get(3, 0);
         setCompetitions(data);
       } catch (error) {
         console.error("Failed to fetch featured competitions:", error);
@@ -20,38 +22,43 @@ export default function FeaturedCompetitions() {
         setIsLoading(false);
       }
     };
-    
     fetchCompetitions();
   }, []);
 
   return (
     <section className="py-24 bg-offwhite text-navy relative">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b-4 border-navy pb-6">
+      <div className="container mx-auto px-5">
+        {/* Section header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-12 gap-4">
           <div>
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-2">Featured Arenas</h2>
-            <p className="text-navy/70 text-lg">The biggest upcoming tournaments.</p>
+            <p className="text-red font-bold text-xs uppercase tracking-[0.2em] mb-2">On The Stage</p>
+            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-navy">
+              Featured Arenas
+            </h2>
+            <p className="text-navy/50 text-base mt-2">The biggest upcoming tournaments.</p>
           </div>
-          <Link href="/competitions" className="group mt-4 md:mt-0 font-bold uppercase tracking-wider text-red hover:text-navy transition-colors flex items-center gap-2">
+          <Link
+            href="/competitions"
+            className="group inline-flex items-center gap-2 font-bold uppercase tracking-wider text-sm text-navy/50 hover:text-red transition-colors shrink-0"
+          >
             View All
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {isLoading ? (
-            <div className="col-span-3 text-center py-12 font-bold text-navy/50">
-              Loading featured competitions...
-            </div>
-          ) : competitions.length > 0 ? (
-            competitions.map((comp) => (
-              <CompetitionCard key={comp.id} competition={comp} />
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-12 font-bold text-navy/50">
-              No featured competitions available at the moment.
-            </div>
-          )}
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+            : competitions.length > 0
+            ? competitions.map((comp, i) => (
+                <CompetitionCard key={comp.id} competition={comp} index={i} />
+              ))
+            : (
+              <div className="col-span-3 text-center py-16 text-navy/40 font-bold">
+                No featured competitions right now. Check back soon!
+              </div>
+            )}
         </div>
       </div>
     </section>
